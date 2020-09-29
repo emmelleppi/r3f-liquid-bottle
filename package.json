@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@react-spring/three": "^9.0.0-rc.3",
+    "@react-spring/three": "9.4.5-canary.45",
     "drei": "^1.5.3",
     "react": "16.13.1",
     "react-dom": "16.13.1",

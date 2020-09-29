@@ -72,7 +72,6 @@ export default function App() {
           intensity={3}
           onUpdate={(self) => self.lookAt(0, 0, 0)}
         />
-        {/* <pointLight position={[4, -10, 10]} intensity={0.5} color="yellow"/> */}
         <Suspense fallback={null}>
           <group position={[0, -12, 0]}>
             <Bottles />
