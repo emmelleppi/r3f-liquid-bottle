@@ -1,11 +1,14 @@
 import * as THREE from "three";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useLoader, useFrame } from "react-three-fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { draco } from "drei/loaders/draco";
+import { useTextureLoader } from "drei/loaders/useTextureLoader";
+import { a, useSpring, useTransition } from '@react-spring/three'
 
-import { material } from "./store";
-import { useNormalTexture, useTextureLoader } from "drei";
+function easeOutCubic(x) {
+  return 1 - Math.pow(1 - x, 3);
+}
 
 function Label({ texture, offset = [-1, -1], repeat = [2, 2], ...props }) {
   const { nodes } = useLoader(GLTFLoader, "/draco.glb", draco());
@@ -35,91 +38,122 @@ function Label({ texture, offset = [-1, -1], repeat = [2, 2], ...props }) {
 
 function Bottle({ initial, glas, cap, liquid, children, ...props }) {
   const ref = useRef();
-  const liquidRef = useRef();
 
+  const [hovered, set] = useState(false);
   const [plane] = useState(new THREE.Plane(new THREE.Vector3(0, -1, 0), 0));
 
   const { nodes } = useLoader(GLTFLoader, "/draco.glb", draco());
-
-  const [hovered, set] = useState(false);
-
-  const [normal, normal2] = useTextureLoader([
-    "/225_norm.jpg",
-    "/190_norm.jpeg",
+  const [
+    planksAo,
+    planksDisplacement,
+    planksNormal,
+    planksRoughness,
+  ] = useTextureLoader([
+    "/planks/ao.jpg",
+    "/planks/displacement.jpg",
+    "/planks/normal.jpg",
+    "/planks/roughness.jpg",
   ]);
-  normal.wrapS = normal.wrapT = THREE.RepeatWrapping;
-  normal2.wrapS = normal2.wrapT = THREE.RepeatWrapping;
-  normal.repeat = new THREE.Vector2(8, 8);
-  normal2.repeat = new THREE.Vector2(4, 4);
+  planksAo.wrapS = planksAo.wrapT = THREE.RepeatWrapping;
+  planksDisplacement.wrapS = planksDisplacement.wrapT = THREE.RepeatWrapping;
+  planksNormal.wrapS = planksNormal.wrapT = THREE.RepeatWrapping;
+  planksRoughness.wrapS = planksRoughness.wrapT = THREE.RepeatWrapping;
+  planksAo.repeat = new THREE.Vector2(4, 4);
+  planksDisplacement.repeat = new THREE.Vector2(4, 4);
+  planksNormal.repeat = new THREE.Vector2(4, 4);
+  planksRoughness.repeat = new THREE.Vector2(4, 4);
+  const [glassNormal] = useTextureLoader(["/225_norm.jpg"])
+  glassNormal.wrapS = glassNormal.wrapT = THREE.RepeatWrapping;
+  glassNormal.repeat = new THREE.Vector2(4, 4);
 
-  useFrame(({ clock }) => {
-    const time = clock.getElapsedTime() * 10;
-    ref.current.position.z = THREE.MathUtils.lerp(
-      ref.current.position.z,
-      hovered ? -15 : 0,
-      0.075 - Math.abs(initial) / 2000
-    );
-    plane.normal.set(0.2 * Math.sin(time), -1, 0.2 * Math.cos(time));
-    // plane.applyMatrix4(liquidRef.current.matrix);
-    ref.current.rotation.z = THREE.MathUtils.lerp(
-      ref.current.rotation.z,
-      hovered ? -0.5 : 0,
-      0.075
-    );
+  const transition = useTransition(true, {
+    from: { opacity: 0, scale: [0.1, 0.1, 0.1] },
+    enter: { opacity: 1, scale: [1, 1, 1] },
+  });
+  const { z } = useSpring({
+    z: hovered ? 100 : 0,
+    onChange: ({ z }) => {
+      // const x = easeOutCubic(z / 100)
+      // plane.constant = 0//ref.current.position.distanceTo(origin)// 0.65 * x
+      // console.log(plane.constant)
+      // plane.normal.set(.1 * Math.sin(x * 4 * Math.PI), -1, .1 * Math.cos(x * 4 * Math.PI))
+    }
+  });
+  const { scaleLiquid } = useSpring({
+    scaleLiquid: hovered ? 1.002 : 1,
+    config: {
+      mass: 1.1,
+      tension: 156,
+      friction: 1
+    }
+  })
+  const { posZ, rotZ } = useSpring({
+    posZ: z.to([0, 100], [0, -15]),
+    rotZ: z.to([0, 100], [0, -0.5]),
   });
 
-  return (
-    <group
-      rotation={[Math.PI / 2, 0, 3]}
-      {...props}
-      onPointerOver={(e) => (e.stopPropagation(), set(true))}
-      onPointerOut={() => set(false)}
-    >
-      <group position-z={initial * 5} ref={ref}>
-        {children}
-        <mesh geometry={nodes[glas].geometry}>
-          <meshPhysicalMaterial
-            color={new THREE.Color("#fff").convertSRGBToLinear()}
-            transparent={true}
-            side={THREE.BackSide}
-            transmission={0.5}
-            metalness={0.9}
-            roughness={0.1}
-            normalMap={normal}
-          />
-        </mesh>
-        <mesh geometry={nodes[glas].geometry} castShadow>
-          <meshPhysicalMaterial
-            color={new THREE.Color("#fff").convertSRGBToLinear()}
-            transparent={true}
-            side={THREE.BackSide}
-            transmission={0.7}
-            metalness={0.9}
-            roughness={0.1}
-            normalMap={normal}
-          />
-        </mesh>
-        <mesh geometry={nodes[liquid].geometry} ref={liquidRef} castShadow>
-          <meshPhysicalMaterial
-            color={new THREE.Color("yellow")}
-            transparent={true}
-            transmission={0.5}
-            metalness={0.9}
-            roughness={0.1}
-            clippingPlanes={[plane]}
-          />
-        </mesh>
-        <mesh geometry={nodes[cap].geometry}>
-          <meshPhysicalMaterial
-            color={new THREE.Color("#010101")}
-            metalness={0}
-            roughness={1}
-            normalMap={normal2}
-          />
-        </mesh>
+  return transition(({ opacity, scale }, data) =>(
+      <group
+        rotation={[Math.PI / 2, 0, 3]}
+        {...data}
+        {...props}
+        onPointerOver={(e) => (e.stopPropagation(), set(true))}
+        onPointerOut={() => set(false)}
+      >
+        <a.group position-z={posZ} ref={ref} rotation-z={rotZ} opacity={opacity} scale={scale}>
+          {children}
+          <mesh geometry={nodes[glas].geometry}>
+            <meshPhysicalMaterial
+              color="#FFFFFF"
+              transparent
+              side={THREE.BackSide}
+              transmission={0.3}
+              metalness={0.9}
+              roughness={0.2}
+              clearcoat={1}
+              clearcoatRoughness={1}
+              normalMap={glassNormal}
+              clearcoatNormaMap={glassNormal}
+            />
+          </mesh>
+          <mesh geometry={nodes[glas].geometry} castShadow>
+            <meshPhysicalMaterial
+              color="#FFFFFF"
+              transparent
+              transmission={0.7}
+              metalness={0.9}
+              roughness={0}
+              clearcoat={1}
+              clearcoatRoughness={1}
+              normalMap={glassNormal}
+              clearcoatNormaMap={glassNormal}
+              opacity={0.1}
+            />
+          </mesh>
+          <a.mesh geometry={nodes[liquid].geometry} castShadow scale-z={scaleLiquid} >
+            <meshPhysicalMaterial
+              color={new THREE.Color("#ffc100")}t
+              transmission={0.1}
+              metalness={0.9}
+              roughness={0}
+              // clippingPlanes={[plane]}
+            />
+          </a.mesh>
+          <mesh geometry={nodes[cap].geometry}>
+            <meshPhysicalMaterial
+              color={new THREE.Color("#010101")}
+              metalness={0}
+              roughness={1}
+              normalMap={planksNormal}
+              clearcoatNormaMap={planksNormal}
+              aoMap={planksAo}
+              displacementMap={planksDisplacement}
+              roughnessMap={planksRoughness}
+            />
+          </mesh>
+        </a.group>
       </group>
-    </group>
-  );
+    ))
 }
 
 export default function Bottles(props) {
@@ -134,7 +168,7 @@ export default function Bottles(props) {
         cap="Untitled.052_1"
         liquid="Untitled.052_2"
       >
-        {/* <Label texture={a} scale={[0.78, 0.78, 0.78]} position={[0, 0, -5]} /> */}
+        <Label texture={a} scale={[0.76, 0.76, 0.76]} position={[0, 0, -5]} />
       </Bottle>
     </group>
   );
