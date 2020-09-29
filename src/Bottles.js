@@ -67,7 +67,7 @@ function Bottle({ initial, glas, cap, liquid, children, ...props }) {
     z: hovered ? 100 : 0,
   });
   const { scaleLiquid } = useSpring({
-    scaleLiquid: hovered ? 1.002 : 1,
+    scaleLiquid: hovered ? 1.004 : 1,
     config: {
       mass: 1.1,
       tension: 156,
@@ -75,8 +75,8 @@ function Bottle({ initial, glas, cap, liquid, children, ...props }) {
     }
   })
   const { posZ, rotZ } = useSpring({
-    posZ: z.to([0, 100], [0, -15]),
-    rotZ: z.to([0, 100], [0, -0.5]),
+    posZ: z.to([0, 100], [0, -50]),
+    rotZ: z.to([0, 100], [0, -1]),
   });
 
   return transition(({ opacity, scale }, data) =>(
@@ -94,13 +94,14 @@ function Bottle({ initial, glas, cap, liquid, children, ...props }) {
               color="#FFFFFF"
               transparent
               side={THREE.BackSide}
-              transmission={0.2}
+              transmission={0}
               metalness={0.9}
               roughness={0}
               clearcoat={1}
               clearcoatRoughness={1}
               normalMap={glassNormal}
               clearcoatNormaMap={glassNormal}
+              opacity={0.5}
             />
           </mesh>
           <mesh geometry={nodes[glas].geometry} renderOrder={2} >
@@ -131,7 +132,7 @@ function Bottle({ initial, glas, cap, liquid, children, ...props }) {
           <mesh geometry={nodes[cap].geometry}>
             <meshPhysicalMaterial
               color={new THREE.Color("#010101")}
-              metalness={0}
+              metalness={0.1}
               roughness={1}
               normalMap={planksNormal}
               clearcoatNormaMap={planksNormal}

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import React, { Suspense, useEffect } from "react";
-import { Canvas, useThree } from "react-three-fiber";
-import { useCubeTextureLoader } from "drei/loaders/useCubeTextureLoader";
+import { Canvas, useLoader, useThree } from "react-three-fiber";
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { Loader } from "drei/prototyping/Loader";
 import { Stats } from "drei/misc/Stats";
 import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib";
@@ -15,20 +15,16 @@ RectAreaLightUniformsLib.init();
 
 function Environment({ background = false }) {
   const { gl, scene } = useThree();
-  const cubeMap = useCubeTextureLoader(
-    ["px.png", "nx.png", "py.png", "ny.png", "pz.png", "nz.png"],
-    { path: "/cube/" }
-  );
+  const texture = useLoader(RGBELoader, "/aft_lounge_1k.hdr")
   useEffect(() => {
     const gen = new THREE.PMREMGenerator(gl);
-    gen.compileEquirectangularShader();
-    const hdrCubeRenderTarget = gen.fromCubemap(cubeMap);
-    cubeMap.dispose();
+    const envMap = gen.fromEquirectangular( texture ).texture;
+    if (background) scene.background = envMap;
+    scene.environment = envMap;
+    texture.dispose();
     gen.dispose();
-    if (background) scene.background = hdrCubeRenderTarget.texture;
-    scene.environment = hdrCubeRenderTarget.texture;
     return () => (scene.environment = scene.background = null);
-  }, [cubeMap]);
+  }, [texture]);
   return null;
 }
 
@@ -43,7 +39,7 @@ export default function App() {
         camera={{ position: [0, 0, 100], fov: 15 }}
         onCreated={({ gl }) => {
           // gl.localClippingEnabled = true
-          gl.setClearColor(0x4c525e)
+          gl.setClearColor(0xacd3e5)
         }}
         gl={{
           logarithmicDepthBuffer: true,
@@ -76,12 +72,13 @@ export default function App() {
           <group position={[0, -12, 0]}>
             <Bottles />
             <ContactShadows
+              position={[0, -0.01, 0]}
               rotation={[Math.PI / 2, 0, 0]}
               opacity={0.8}
-              width={100}
-              height={100}
+              width={50}
+              height={50}
               blur={1}
-              far={100}
+              far={40}
             />
           </group>
           <Environment />
@@ -103,8 +100,8 @@ export default function App() {
             />
             <SMAA edgeDetectionMode={EdgeDetectionMode.DEPTH} />
             <Bloom
-              luminanceThreshold={0.6}
-              luminanceSmoothing={0.8}
+              luminanceThreshold={0.75}
+              luminanceSmoothing={0.9}
               intensity={1}
             />
           </EffectComposer>
