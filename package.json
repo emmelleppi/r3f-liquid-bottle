@@ -1,0 +1,36 @@
+{
+  "name": "aesop-bottles",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@react-spring/three": "^9.0.0-rc.3",
+    "drei": "^1.5.3",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "react-postprocessing": "^1.4.0",
+    "react-scripts": "^4.0.0-next.77",
+    "react-three-fiber": "5.0.0-beta.12",
+    "three": "^0.120.1"
+  },
+  "keywords": [],
+  "description": "",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "ncu": "npx npm-check-updates"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
