@@ -120,10 +120,11 @@ function Bottle({ initial, glas, cap, liquid, children, ...props }) {
           <a.mesh geometry={nodes[liquid].geometry} castShadow scale-z={scaleLiquid} renderOrder={0} >
             <meshPhysicalMaterial
               color={new THREE.Color("#ffc100")}
-              metalness={0.1}
-              roughness={0.1}
+              metalness={0}
+              roughness={0.2}
               transparent
-              opacity={0.4}
+              opacity={0.5}
+              clearcoat={0}
               transmission={0}
             />
           </a.mesh>
