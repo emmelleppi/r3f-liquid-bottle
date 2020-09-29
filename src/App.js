@@ -1,31 +1,34 @@
-import * as THREE from 'three'
-import React, { Suspense, useEffect } from 'react'
-import { Canvas, useThree } from 'react-three-fiber'
-import { useCubeTextureLoader } from 'drei/loaders/useCubeTextureLoader'
-import { Loader } from 'drei/prototyping/Loader'
-import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib'
-import { EffectComposer, SSAO, SMAA, Bloom } from 'react-postprocessing'
-import { EdgeDetectionMode } from 'postprocessing'
+import * as THREE from "three";
+import React, { Suspense, useEffect } from "react";
+import { Canvas, useThree } from "react-three-fiber";
+import { useCubeTextureLoader } from "drei/loaders/useCubeTextureLoader";
+import { Loader } from "drei/prototyping/Loader";
+import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib";
+import { EffectComposer, SSAO, SMAA, Bloom } from "react-postprocessing";
+import { EdgeDetectionMode } from "postprocessing";
 
-import Bottles from './Bottles'
-import { ContactShadows } from 'drei'
+import Bottles from "./Bottles";
+import { ContactShadows } from "drei";
 
-RectAreaLightUniformsLib.init()
+RectAreaLightUniformsLib.init();
 
 function Environment({ background = false }) {
-  const { gl, scene } = useThree()
-  const cubeMap = useCubeTextureLoader(['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png'], { path: '/cube/' })
+  const { gl, scene } = useThree();
+  const cubeMap = useCubeTextureLoader(
+    ["px.png", "nx.png", "py.png", "ny.png", "pz.png", "nz.png"],
+    { path: "/cube/" }
+  );
   useEffect(() => {
-    const gen = new THREE.PMREMGenerator(gl)
-    gen.compileEquirectangularShader()
-    const hdrCubeRenderTarget = gen.fromCubemap(cubeMap)
-    cubeMap.dispose()
-    gen.dispose()
-    if (background) scene.background = hdrCubeRenderTarget.texture
-    scene.environment = hdrCubeRenderTarget.texture
-    return () => (scene.environment = scene.background = null)
-  }, [cubeMap])
-  return null
+    const gen = new THREE.PMREMGenerator(gl);
+    gen.compileEquirectangularShader();
+    const hdrCubeRenderTarget = gen.fromCubemap(cubeMap);
+    cubeMap.dispose();
+    gen.dispose();
+    if (background) scene.background = hdrCubeRenderTarget.texture;
+    scene.environment = hdrCubeRenderTarget.texture;
+    return () => (scene.environment = scene.background = null);
+  }, [cubeMap]);
+  return null;
 }
 
 export default function App() {
@@ -68,13 +71,27 @@ export default function App() {
         <Suspense fallback={null}>
           <group position={[0, -12, 0]}>
             <Bottles />
-            <ContactShadows rotation={[Math.PI / 2, 0, 0]} opacity={0.8} width={100} height={100} blur={1} far={100} />
+            <ContactShadows
+              rotation={[Math.PI / 2, 0, 0]}
+              opacity={0.8}
+              width={100}
+              height={100}
+              blur={1}
+              far={100}
+            />
           </group>
           <Environment />
         </Suspense>
         <Suspense fallback={null}>
           <EffectComposer multisampling={0}>
-            <SSAO samples={64} intensity={64} luminanceInfluence={0.5} radius={10} scale={0.5} bias={0.5} />
+            <SSAO
+              samples={64}
+              intensity={64}
+              luminanceInfluence={0.5}
+              radius={10}
+              scale={0.5}
+              bias={0.5}
+            />
             <SMAA edgeDetectionMode={EdgeDetectionMode.DEPTH} />
             <Bloom
               luminanceThreshold={0.9}
@@ -86,5 +103,5 @@ export default function App() {
       </Canvas>
       <Loader />
     </>
-  )
+  );
 }

@@ -1,8 +1,8 @@
-import * as THREE from 'three'
+import * as THREE from "three";
 
 export const material = {
   inner: new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('#fff').convertSRGBToLinear(),
+    color: new THREE.Color("#fff").convertSRGBToLinear(),
     transparent: true,
     side: THREE.BackSide,
     transmission: 0.5,
@@ -10,16 +10,16 @@ export const material = {
     roughness: 0,
   }),
   outer: new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('#fff').convertSRGBToLinear(),
+    color: new THREE.Color("#fff").convertSRGBToLinear(),
     transparent: true,
     transmission: 0.7,
     metalness: 1,
     roughness: 0,
   }),
-  cap: new THREE.MeshStandardMaterial({ color: new THREE.Color('#040404') }),
+  cap: new THREE.MeshStandardMaterial({ color: new THREE.Color("#040404") }),
   liquid: new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('yellow'),
+    color: new THREE.Color("yellow"),
     transparent: true,
-    transmission: 0.5
+    transmission: 0.5,
   }),
-}
+};
