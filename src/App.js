@@ -91,8 +91,8 @@ export default function App() {
           <EffectComposer multisampling={0}>
             <SSAO
               intensity={40}
-              samples={64} // amount of samples per pixel (shouldn't be a multiple of the ring count)
-              rings={10} // amount of rings in the occlusion sampling pattern
+              samples={32} // amount of samples per pixel (shouldn't be a multiple of the ring count)
+              rings={5} // amount of rings in the occlusion sampling pattern
               distanceThreshold={0.0} // global distance threshold at which the occlusion effect starts to fade out. min: 0, max: 1
               distanceFalloff={0.0} // distance falloff. min: 0, max: 1
               rangeThreshold={0.0} // local occlusion range threshold at which the occlusion starts to fade out. min: 0, max: 1
