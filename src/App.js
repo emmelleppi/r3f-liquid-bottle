@@ -54,6 +54,7 @@ export default function App() {
           alpha: false
         }}
       >
+        <ambientLight intensity={0.3} />
         <spotLight
           penumbra={1}
           angle={0.35}
@@ -89,12 +90,17 @@ export default function App() {
         <Suspense fallback={null}>
           <EffectComposer multisampling={0}>
             <SSAO
-              samples={64}
-              intensity={64}
-              luminanceInfluence={1}
-              radius={20}
-              scale={0.5}
-              bias={0.5}
+              intensity={40}
+              samples={64} // amount of samples per pixel (shouldn't be a multiple of the ring count)
+              rings={10} // amount of rings in the occlusion sampling pattern
+              distanceThreshold={0.0} // global distance threshold at which the occlusion effect starts to fade out. min: 0, max: 1
+              distanceFalloff={0.0} // distance falloff. min: 0, max: 1
+              rangeThreshold={0.0} // local occlusion range threshold at which the occlusion starts to fade out. min: 0, max: 1
+              rangeFalloff={1.0} // occlusion range falloff. min: 0, max: 1
+              luminanceInfluence={10} // how much the luminance of the scene influences the ambient occlusion
+              radius={10} // occlusion sampling radius
+              scale={0.5} // scale of the ambient occlusion
+              bias={0.5} // occlusion bias
             />
             <SMAA edgeDetectionMode={EdgeDetectionMode.DEPTH} />
             <Bloom

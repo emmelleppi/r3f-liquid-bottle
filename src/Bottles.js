@@ -107,9 +107,9 @@ function Bottle({ initial, glas, cap, liquid, children, ...props }) {
               color="#FFFFFF"
               transparent
               side={THREE.BackSide}
-              transmission={0.3}
-              metalness={0.9}
-              roughness={0.2}
+              transmission={0.1}
+              metalness={1}
+              roughness={0}
               clearcoat={1}
               clearcoatRoughness={1}
               normalMap={glassNormal}
@@ -121,7 +121,7 @@ function Bottle({ initial, glas, cap, liquid, children, ...props }) {
               color="#FFFFFF"
               transparent
               transmission={0.7}
-              metalness={0.9}
+              metalness={1}
               roughness={0}
               clearcoat={1}
               clearcoatRoughness={1}
