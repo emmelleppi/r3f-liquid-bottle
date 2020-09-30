@@ -1,25 +1,28 @@
 import * as THREE from "three";
 import React, { Suspense, useEffect } from "react";
 import { Canvas, useLoader, useThree } from "react-three-fiber";
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { Loader } from "drei/prototyping/Loader";
-import { Stats } from "drei/misc/Stats";
 import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib";
-import { EffectComposer, SSAO, SMAA, Bloom } from "react-postprocessing";
-import { EdgeDetectionMode } from "postprocessing";
 
 import Bottles from "./Bottles";
-import { ContactShadows, Plane, useAspect, useTextureLoader } from "drei";
+import {
+  ContactShadows,
+  OrbitControls,
+  Plane,
+  useAspect,
+  useTextureLoader,
+} from "drei";
 import useLayers from "./use-layers";
 
 RectAreaLightUniformsLib.init();
 
 function Environment({ background = false }) {
   const { gl, scene } = useThree();
-  const texture = useLoader(RGBELoader, "/aft_lounge_1k.hdr")
+  const texture = useLoader(RGBELoader, "/aft_lounge_1k.hdr");
   useEffect(() => {
     const gen = new THREE.PMREMGenerator(gl);
-    const envMap = gen.fromEquirectangular( texture ).texture;
+    const envMap = gen.fromEquirectangular(texture).texture;
     if (background) scene.background = envMap;
     scene.environment = envMap;
     texture.dispose();
@@ -30,17 +33,25 @@ function Environment({ background = false }) {
 }
 
 function Background() {
-  const ref =  useLayers([1])
-  const texture = useTextureLoader("/aft_lounge.jpg")
+  const ref = useLayers([1]);
+  const texture = useTextureLoader("/aft_lounge.jpg");
   const scale = useAspect(
-    "cover",                  // Aspect ratio: cover | ... more to come, PR's welcome ;)
-    1024,                     // Pixel-width
-    512,                      // Pixel-height
-    1                         // Optional scaling factor
-  )
-  return <Plane ref={ref} scale={scale} position={[0, 20, 10]}  >
-    <meshPhysicalMaterial map={texture} depthTest={false} color={0x9ff59a} transparent opacity={0.8}/>
-  </Plane>
+    "cover", // Aspect ratio: cover | ... more to come, PR's welcome ;)
+    1024, // Pixel-width
+    512, // Pixel-height
+    1 // Optional scaling factor
+  );
+  return (
+    <Plane ref={ref} scale={scale} position={[0, 20, 10]}>
+      <meshPhysicalMaterial
+        map={texture}
+        depthTest={false}
+        color={0x9ff59a}
+        transparent
+        opacity={0.8}
+      />
+    </Plane>
+  );
 }
 
 export default function App() {
@@ -52,15 +63,15 @@ export default function App() {
         colorManagement
         camera={{ position: [0, 0, 130], fov: 15 }}
         onCreated={({ gl }) => {
-          gl.setClearColor(0x9ff59a)
+          gl.setClearColor(0x9ff59a);
         }}
         gl={{
           logarithmicDepthBuffer: true,
-          powerPreference: 'high-performance',
+          powerPreference: "high-performance",
           antialias: false,
           stencil: false,
           depth: false,
-          alpha: false
+          alpha: false,
         }}
       >
         <ambientLight intensity={0.3} />
@@ -94,8 +105,8 @@ export default function App() {
           </group>
           <Environment />
         </Suspense>
+        <OrbitControls enableRotate={false} />
       </Canvas>
-      <Stats />
       <Loader />
     </>
   );

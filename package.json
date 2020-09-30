@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@react-spring/three": "^9.0.0-rc.1",
     "drei": "^1.5.3",
+    "lerp": "^1.0.3",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-postprocessing": "^1.4.0",

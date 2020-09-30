@@ -111,7 +111,7 @@ void main() {
     vec4 marcello = mainImage();
 
     gl_FragColor = vec4(color.rgb * vec3(1., 1., 0.) ,  0.9);
-}`
+}`;
 
 export const vert = `varying vec3 worldNormal;
 varying vec3 viewDirection;
@@ -133,4 +133,4 @@ void main() {
     gl_Position = projectionMatrix * modelViewMatrix * transformedPosition;
 }
 
-`
+`;

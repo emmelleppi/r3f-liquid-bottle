@@ -1,17 +1,17 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef } from "react";
 
 function useLayers(layers = [0]) {
-  const ref = useRef()
+  const ref = useRef();
 
   useEffect(() => {
-    ref.current.layers.disableAll()
+    ref.current.layers.disableAll();
 
     layers.sort().forEach((layer) => {
-      ref.current.layers.enable(layer)
-    })
-  })
+      ref.current.layers.enable(layer);
+    });
+  });
 
-  return ref
+  return ref;
 }
 
-export default useLayers
+export default useLayers;

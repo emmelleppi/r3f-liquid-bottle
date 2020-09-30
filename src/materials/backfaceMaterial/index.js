@@ -2,7 +2,7 @@ export const frag = `
 varying vec3 worldNormal;
 void main() {
 gl_FragColor = vec4(worldNormal, 1.0);
-}`
+}`;
 
 export const vert = `
 varying vec3 worldNormal;
@@ -17,4 +17,4 @@ void main() {
 
   worldNormal = normalize( modelViewMatrix * transformedNormal).xyz;
   gl_Position = projectionMatrix * modelViewMatrix * transformedPosition;
-}`
+}`;
