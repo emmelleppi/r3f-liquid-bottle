@@ -9,7 +9,8 @@ import { EffectComposer, SSAO, SMAA, Bloom } from "react-postprocessing";
 import { EdgeDetectionMode } from "postprocessing";
 
 import Bottles from "./Bottles";
-import { ContactShadows } from "drei";
+import { ContactShadows, Plane, useAspect, useTextureLoader } from "drei";
+import useLayers from "./use-layers";
 
 RectAreaLightUniformsLib.init();
 
@@ -28,18 +29,30 @@ function Environment({ background = false }) {
   return null;
 }
 
+function Background() {
+  const ref =  useLayers([1])
+  const texture = useTextureLoader("/aft_lounge.jpg")
+  const scale = useAspect(
+    "cover",                  // Aspect ratio: cover | ... more to come, PR's welcome ;)
+    1024,                     // Pixel-width
+    512,                      // Pixel-height
+    1                         // Optional scaling factor
+  )
+  return <Plane ref={ref} scale={scale} position={[0, 20, 10]}  >
+    <meshPhysicalMaterial map={texture} depthTest={false} color={0x9ff59a} transparent opacity={0.8}/>
+  </Plane>
+}
+
 export default function App() {
   return (
     <>
       <Canvas
         pixelRatio={1.5}
         concurrent
-        shadowMap
         colorManagement
-        camera={{ position: [0, 0, 100], fov: 15 }}
+        camera={{ position: [0, 0, 130], fov: 15 }}
         onCreated={({ gl }) => {
-          // gl.localClippingEnabled = true
-          gl.setClearColor(0xacd3e5)
+          gl.setClearColor(0x9ff59a)
         }}
         gl={{
           logarithmicDepthBuffer: true,
@@ -54,11 +67,8 @@ export default function App() {
         <spotLight
           penumbra={1}
           angle={0.35}
-          castShadow
           position={[4, -15, 5]}
           intensity={2}
-          shadow-mapSize-width={256}
-          shadow-mapSize-height={256}
         />
         <rectAreaLight
           position={[-100, 0, 0]}
@@ -80,31 +90,9 @@ export default function App() {
               blur={1}
               far={40}
             />
+            <Background />
           </group>
           <Environment />
-        </Suspense>
-        <Suspense fallback={null}>
-          <EffectComposer multisampling={0}>
-            <SSAO
-              intensity={40}
-              samples={32} // amount of samples per pixel (shouldn't be a multiple of the ring count)
-              rings={5} // amount of rings in the occlusion sampling pattern
-              distanceThreshold={0.0} // global distance threshold at which the occlusion effect starts to fade out. min: 0, max: 1
-              distanceFalloff={0.0} // distance falloff. min: 0, max: 1
-              rangeThreshold={0.0} // local occlusion range threshold at which the occlusion starts to fade out. min: 0, max: 1
-              rangeFalloff={1.0} // occlusion range falloff. min: 0, max: 1
-              luminanceInfluence={10} // how much the luminance of the scene influences the ambient occlusion
-              radius={10} // occlusion sampling radius
-              scale={0.5} // scale of the ambient occlusion
-              bias={0.5} // occlusion bias
-            />
-            <SMAA edgeDetectionMode={EdgeDetectionMode.DEPTH} />
-            <Bloom
-              luminanceThreshold={0.75}
-              luminanceSmoothing={0.9}
-              intensity={1}
-            />
-          </EffectComposer>
         </Suspense>
       </Canvas>
       <Stats />
