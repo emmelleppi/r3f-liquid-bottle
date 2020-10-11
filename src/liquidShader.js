@@ -43,7 +43,7 @@ void main() {
     fillEdge =  worldPosAdjusted.y + fillAmount;
 
     worldNormal = normalize(modelViewMatrix * transformedNormal).xyz;
-    viewDirection = normalize(worldPosition.xyz - cameraPosition);;
+    viewDirection = normalize(worldPosition.xyz - cameraPosition);
     gl_Position = projectionMatrix * modelViewMatrix * transformedPosition;
 }
 `;
@@ -89,6 +89,6 @@ void main() {
     vec4 _topColor = topColor * (foam + result);
 
     //VFACE returns positive for front facing, negative for backfacing
-    gl_FragColor = gl_FrontFacing ? finalResult : _topColor;
+    gl_FragColor =finalResult;
 }
 `;
