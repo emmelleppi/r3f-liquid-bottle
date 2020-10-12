@@ -108,7 +108,7 @@ function Bottle() {
     lastPos.current = ref.current.position.clone();
     lastRot.current = ref.current.rotation.clone().toVector3();
     bubbleMaterial.current.material.uniforms.fillAmount.value =
-      -ref.current.position.y + 7;
+      -ref.current.position.y + 8;
   });
 
   return (
