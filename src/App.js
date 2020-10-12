@@ -65,7 +65,7 @@ export default function App() {
           gl.setClearColor(0x9ff59a);
         }}
         camera={{ position: [0, 0, 130], fov: 15 }}
-        pixelRatio={Math.min(2, isMobile ? window.devicePixelRatio : 1.5)}
+        pixelRatio={isMobile ? 1 : 1.5}
         gl={{
           powerPreference: "high-performance",
           antialias: false,
