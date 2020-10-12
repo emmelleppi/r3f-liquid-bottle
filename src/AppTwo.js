@@ -1,12 +1,11 @@
 import * as THREE from "three";
 import React, { Suspense, useEffect, useRef } from "react";
 import { Canvas, useFrame, useLoader, useThree } from "react-three-fiber";
-import { draco, useTextureLoader } from "drei";
-import { frag, vert } from "./liquidShader";
+import { useTextureLoader, Torus } from "drei";
+import { frag, vert } from "./materials/liquidMaterial";
 import clamp from "lodash/clamp";
 import lerp from "lerp";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 function Environment({ background = false }) {
   const { gl, scene } = useThree();
@@ -24,14 +23,14 @@ function Environment({ background = false }) {
 }
 
 function Background() {
-  const {  scene } = useThree();
+  const { scene } = useThree();
   const texture = useTextureLoader("/aft_lounge.jpg");
-  
+
   useEffect(() => {
     scene.background = texture;
-  }, [scene,texture])
+  }, [scene, texture]);
 
-  return null
+  return null;
 }
 
 function Marcello(props) {
@@ -45,20 +44,9 @@ function Marcello(props) {
 
   const recovery = 4;
   const wobbleSpeed = 1;
-  const maxWobble = 0.002;
+  const maxWobble = 0.01;
 
   const { size, viewport } = useThree();
-
-  const { nodes } = useLoader(GLTFLoader, "/coca-bottle.glb", draco());
-
-  const [tassoni] = useTextureLoader(["/tassoni.jpg"]);
-  tassoni.center = new THREE.Vector2(0.5, 0.5);
-  tassoni.rotation = -Math.PI / 2;
-  tassoni.repeat = new THREE.Vector2(-1, 1);
-
-  const [glassNormal] = useTextureLoader(["/225_norm.jpg"]);
-  glassNormal.wrapS = glassNormal.wrapT = THREE.RepeatWrapping;
-  glassNormal.repeat = new THREE.Vector2(4, 4);
 
   useFrame(({ clock, mouse }) => {
     if (ref.current) {
@@ -71,6 +59,7 @@ function Marcello(props) {
 
       ref.current.position.x = mouseX * 2;
       ref.current.position.y = mouseY * 2;
+      ref.current.rotation.x += 0.01;
 
       // decrease wobble over time
       wobbleAmountToAddX.current = lerp(
@@ -122,120 +111,76 @@ function Marcello(props) {
 
   return (
     <>
-      <group
-        {...props}
-        ref={ref}
-        dispose={null}
-      >
-        <group position={[0, 0, 0]}>
-          <group position={[0, 10.01, 0]}>
-            <mesh geometry={nodes["Mesh.002_0"].geometry} castShadow>
-              <meshPhysicalMaterial
-                color={new THREE.Color("green")}
-                metalness={1}
-                roughness={1}
-              />
-            </mesh>
-            <mesh geometry={nodes["Mesh.002_1"].geometry} castShadow>
-              <meshPhysicalMaterial
-                color={new THREE.Color("white")}
-                metalness={1}
-                roughness={0}
-                clearcoat={1}
-              />
-            </mesh>
-          </group>
-          <mesh ref={bubbleMaterial} geometry={nodes.Coca_Outside.geometry} scale={[0.97, 0.97, 0.97]} position={[0, -0.04, 0]} renderOrder={1} >
-            <shaderMaterial
-              transparent
-              vertexShader={vert}
-              fragmentShader={frag}
-              side={THREE.DoubleSide}
-              uniforms={{
-                time: { value: 0 },
-                resolution: {
-                  value: new THREE.Vector2(size.width, size.height),
-                },
-                fillAmount: {
-                  value: 0,
-                },
-                wobbleX: {
-                  value: 0.01,
-                },
-                wobbleZ: {
-                  value: 0.01,
-                },
-                topColor: {
-                  value: new THREE.Vector4(0, 0, 1, 0),
-                },
-                rimColor: {
-                  value: new THREE.Vector4(1, 1, 1, 1),
-                },
-                foamColor: {
-                  value: new THREE.Vector4(1, 1, 0, 0.9),
-                },
-                tint: {
-                  value: new THREE.Vector4(1, 1, 0, 0.4),
-                },
-                rim: {
-                  value: 0.01,
-                },
-                rimPower: {
-                  value: 1,
-                },
-              }}
-            />    
-          </mesh>
-          <mesh geometry={nodes.Coca_Outside.geometry} renderOrder={0}>
-            <meshPhysicalMaterial
-              color="#FFFFFF"
-              transparent
-              side={THREE.BackSide}
-              transmission={0.1}
-              metalness={0.9}
-              roughness={0}
-              clearcoat={1}
-              clearcoatRoughness={1}
-              normalMap={glassNormal}
-              normalScale={[2, 2]}
-              clearcoatNormaMap={glassNormal}
-              opacity={0.2}
-            />
-          </mesh>
-          <mesh
-            geometry={nodes.Coca_Outside.geometry}
-            position={[0, -0.04, 0]}
-            renderOrder={2}
-            castShadow
-          >
-            <meshPhysicalMaterial
-              color="#FFFFFF"
-              transparent
-              transmission={0.7}
-              metalness={0.9}
-              roughness={0}
-              clearcoat={1}
-              clearcoatRoughness={1}
-              normalMap={glassNormal}
-              normalScale={[2, 2]}
-              clearcoatNormaMap={glassNormal}
-              opacity={0.2}
-            />
-          </mesh>
-          <mesh geometry={nodes.Label.geometry} position={[1.69, 0.84, -0.01]} renderOrder={3}>
-            <meshPhysicalMaterial
-              side={THREE.DoubleSide}
-              metalness={0}
-              roughness={1}
-              clearcoat={1}
-              clearcoatRoughness={1}
-              map={tassoni}
-              normalMap={glassNormal}
-            />
-          </mesh>
-        </group>
+      <group {...props} ref={ref} dispose={null}>
+        <Torus args={[1, 0.5, 64, 64]} renderOrder={0}>
+          <meshPhysicalMaterial
+            side={THREE.BackSide}
+            transmission={0.1}
+            metalness={1}
+            roughness={0}
+            transparent
+            clearcoat={1}
+            color={0xffffff}
+            opacity={0.1}
+          />
+        </Torus>
+        <Torus args={[1, 0.5, 64, 64]} renderOrder={2}>
+          <meshPhysicalMaterial
+            transmission={0.7}
+            metalness={1}
+            roughness={0}
+            transparent
+            clearcoat={1}
+            color={0xffffff}
+            opacity={0.1}
+          />
+        </Torus>
+        <Torus
+          renderOrder={1}
+          ref={bubbleMaterial}
+          args={[1, 0.5, 64, 64]}
+          scale={[0.98, 0.98, 0.98]}
+        >
+          <shaderMaterial
+            transparent
+            vertexShader={vert}
+            fragmentShader={frag}
+            side={THREE.DoubleSide}
+            uniforms={{
+              resolution: {
+                value: new THREE.Vector2(size.width, size.height),
+              },
+              fillAmount: {
+                value: 0,
+              },
+              wobbleX: {
+                value: 0.01,
+              },
+              wobbleZ: {
+                value: 0.01,
+              },
+              topColor: {
+                value: new THREE.Vector4(0, 0, 1, 1),
+              },
+              rimColor: {
+                value: new THREE.Vector4(1, 1, 1, 1),
+              },
+              foamColor: {
+                value: new THREE.Vector4(1, 0, 0, 1),
+              },
+              tint: {
+                value: new THREE.Vector4(1, 1, 0, 1),
+              },
+              rim: {
+                value: 0.03,
+              },
+              rimPower: {
+                value: 1,
+              },
+            }}
+          />
+        </Torus>
       </group>
-
     </>
   );
 }
@@ -244,27 +189,19 @@ export default function App() {
   return (
     <>
       <Canvas
-        pixelRatio={2}
+        pixelRatio={1.5}
         colorManagement
         camera={{ position: [0, 0, 5], fov: 15 }}
         onCreated={({ gl }) => {
           gl.setClearColor(0x9ff59a);
         }}
-        gl={{
-          // logarithmicDepthBuffer: true,
-          // powerPreference: "high-performance",
-          // antialias: false,
-          // stencil: false,
-          // depth: false,
-          // alpha: false,
-        }}
       >
         <ambientLight intensity={0.3} />
         <pointLight position={[0, -0, 10]} intensity={2} />
         <Suspense fallback={null}>
-          <Marcello position={[0, 0, -10]} scale={[0.1,0.1,0.1]} />
+          <Marcello position={[0, 0, -10]} />
           <Environment />
-          {/* <Background /> */}
+          <Background />
         </Suspense>
       </Canvas>
     </>

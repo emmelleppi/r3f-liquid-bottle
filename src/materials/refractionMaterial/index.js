@@ -7,10 +7,18 @@ uniform float time;
 uniform sampler2D envMap;
 uniform sampler2D backfaceMap;
 uniform vec2 resolution;
+uniform vec4 topColor;
+uniform vec4 rimColor;
+uniform vec4 foamColor;
+uniform vec4 tint;
+uniform float rim;
+uniform float rimPower;
 
 varying vec3 worldNormal;
 varying vec3 viewDirection;
 varying vec2 vUv;
+varying vec4 worldPosition;
+varying float fillEdge;
 
 float ior = 1.5;
 float a = 0.33;
@@ -22,71 +30,11 @@ float fresnelFunc(vec3 viewDirection, vec3 worldNormal) {
     return pow( 1.08 + dot( viewDirection, worldNormal), 10.0 );
 }
 
-
-const float ADC		= 0.03;	// adaptive depth control bailout	0.0 - 1.0
-const float maxDist	= 20.;	// maximim draw distance			0.0 - ?.?
-
-float rand(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 9.4821)))*43758.5453); }
-
-vec3 rand3v(vec3 p) {
-	mat3 m = mat3(15.2, 27.6, 35.7, 53.1, 75.8, 99.8, 153.2, 170.6, 233.7);
-	return fract(sin(m * p) * 43648.23);
-}
-
-float s, c;
-#define rotate(p, a) mat2(c=cos(a), s=-sin(a), -s, c) * p
-
-vec4 mainImage() {
-    vec2 uv		= vec2(gl_FragCoord.xy - 0.5 * resolution) / resolution.y;
-	vec2 mPos	= vec2(0.0, -3.0);    
-    vec3 camPos	= vec3(.0, .0, -150.);
-    vec3 rayDir	= normalize(vec3(uv, .8));
-    rayDir.yz = rotate(rayDir.yz, mPos.y);
-    rayDir.xz = rotate(rayDir.xz, mPos.x);
-    
-    camPos.y += time;
-    
-    vec3 adj, xV, yV, zV, V_;
-    vec3 po	= sign(rayDir);
-    vec3 V	= camPos, LV;
-    float dist;
-    
-    vec4 RGBA	= vec4(vec3(0.), 1.);
-    
-    for(int i=0; i<10; i++) {
-        dist = length(V-camPos);
-        LV = V;
-        adj = mix(floor(V+po), ceil(V+po), .5-.5*po) - V;
-        
-        xV = adj.x * vec3(1., rayDir.yz/rayDir.x);
-        yV = adj.y * vec3(rayDir.xz/rayDir.y, 1.);
-        zV = adj.z * vec3(rayDir.xy/rayDir.z, 1.);
-
-        V_ = vec3(length(xV)<length(yV) ? xV : yV.xzy);
-    	V_ = vec3(length(V_)<length(zV) ? V_ : zV);
-        V += V_;
-
-        if(dist>maxDist || RGBA.a<ADC) break;
-
-        if(rand(floor((V+LV)/2.))>.5){
-            float pRad = .25*fract(3.141592*rand(floor((V+LV)/2.)));
-            vec3 pOff = 10. * rand3v(floor((V+LV)/2.));
-            pOff = -vec3(sin(time+pOff.x), cos(time+pOff.y), sin(time+pOff.z))*pRad;
-            vec3 pVec = camPos + rayDir * length(floor((V+LV)/2.)+.5-camPos-pOff)+pOff;
-            float circ = length( pVec-floor((V+LV)/2.)-.5 )+.5-pRad*1.25;
-            float alph = float(clamp(smoothstep(0.8, 0.9, 2.-5.*circ), 0., 1.));
-            RGBA.rgb += RGBA.a * alph;
-            RGBA.a *= 1.001 - alph;
-       	}
-    }
-    
-    return RGBA;
-}
-
 void main() {
     // screen coordinates
     vec2 uv = gl_FragCoord.xy / resolution;
 
+    // INIT REFRACTION SHADER
     // sample backface data from texture
     vec3 backfaceNormal = texture2D(backfaceMap, uv).rgb;
 
@@ -107,15 +55,53 @@ void main() {
 
     // apply fresnel
     color.rgb = mix(color.rgb, reflectionColor, fresnel);
+    // END REFRACTION SHADER
+    
+    
+    // INIT LIQUID SHADER
+    vec4 col = tint;
+    float dotProduct = 1.0 - pow(dot(worldNormal, viewDirection), rimPower);
+    vec4 RimResult = vec4(smoothstep(0.5, 1.0, dotProduct));
+    RimResult *= rimColor;
+    RimResult *= rimColor.w;
+    
+    // foam edge
+    vec4 foam = vec4(step(fillEdge, 0.5) - step(fillEdge, (0.5 - rim)))  ;
+    vec4 foamColored = foam * (foamColor * 0.9);
 
-    vec4 marcello = mainImage();
+    // rest of the liquid
+    vec4 result = step(fillEdge, 0.5) - foam;
+    vec4 resultColored = result * col;
+    
+    // both together, with the texture
+    vec4 finalResult = resultColored + foamColored;				
+    finalResult.rgb += RimResult.rgb;
 
-    gl_FragColor = vec4(color.rgb * vec3(1., 1., 0.) ,  0.9);
+    // END LIQUID SHADER
+
+    gl_FragColor = finalResult * color;
 }`;
 
 export const vert = `varying vec3 worldNormal;
 varying vec3 viewDirection;
 varying vec2 vUv;
+varying vec4 worldPosition;
+varying float fillEdge;
+
+uniform float fillAmount;
+uniform float wobbleX;
+uniform float wobbleZ;
+
+#define PI 3.1415926538
+
+vec4 RotateAroundYInDegrees(vec4 vertex, float degrees)
+{
+   float alpha = degrees * PI / 180.0;
+   float sina = sin(alpha);
+   float cosa = cos(alpha);
+   mat2 m = mat2(cosa, sina, -sina, cosa);
+   return vec4(vertex.yz , m * vertex.xz).xzyw ;				
+}
 
 void main() {
     vUv = uv;
@@ -127,10 +113,21 @@ void main() {
         transformedPosition = instanceMatrix * transformedPosition;
     #endif
 
-    vec4 worldPosition = modelMatrix * vec4( position, 1.0);
-    worldNormal = normalize( modelViewMatrix * transformedNormal).xyz;
-    viewDirection = normalize(worldPosition.xyz - cameraPosition);;
+    // get world position of the vertex
+    worldPosition = modelMatrix * vec4(position, 1.0);
+    // rotate it around XY
+    vec3 worldPosX = RotateAroundYInDegrees(vec4(position, 0.0), 360.0).xyz;
+    // rotate around XZ
+    vec3 worldPosZ = vec3(worldPosX.y, worldPosX.z, worldPosX.x);		
+    
+    // combine rotations with worldPos, based on sine wave from script
+    vec3 worldPosAdjusted = worldPosition.xyz + (worldPosX  * wobbleX) + (worldPosZ * wobbleZ); 
+    
+    // how high up the liquid is
+    fillEdge =  worldPosAdjusted.y + fillAmount;
+
+    worldNormal = normalize(modelViewMatrix * transformedNormal).xyz;
+    viewDirection = normalize(worldPosition.xyz - cameraPosition);
     gl_Position = projectionMatrix * modelViewMatrix * transformedPosition;
 }
-
 `;

@@ -10,8 +10,9 @@
     "react-dom": "16.13.1",
     "react-postprocessing": "^1.4.0",
     "react-scripts": "^4.0.0-next.77",
-    "react-three-fiber": "5.0.0-beta.12",
-    "three": "^0.120.1"
+    "react-three-fiber": "5.0.3",
+    "three": "^0.120.1",
+    "use-cannon": "^0.5.3"
   },
   "keywords": [],
   "description": "",

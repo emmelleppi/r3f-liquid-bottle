@@ -4,16 +4,18 @@ import { Canvas, useLoader, useThree } from "react-three-fiber";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { Loader } from "drei/prototyping/Loader";
 import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib";
-
+import { Physics, usePlane } from "use-cannon";
 import Bottles from "./Bottles";
 import {
+  Box,
   ContactShadows,
   OrbitControls,
-  Plane,
+  Stats,
   useAspect,
   useTextureLoader,
 } from "drei";
 import useLayers from "./use-layers";
+import { Mouse } from "./mouse";
 
 RectAreaLightUniformsLib.init();
 
@@ -32,25 +34,29 @@ function Environment({ background = false }) {
   return null;
 }
 
+function PhyPlane(props) {
+  usePlane(() => ({
+    mass: 0,
+    ...props,
+  }));
+  return null;
+}
+
 function Background() {
   const ref = useLayers([1]);
   const texture = useTextureLoader("/aft_lounge.jpg");
-  const scale = useAspect(
-    "cover", // Aspect ratio: cover | ... more to come, PR's welcome ;)
-    1024, // Pixel-width
-    512, // Pixel-height
-    1 // Optional scaling factor
-  );
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat = new THREE.Vector2(8, 8);
   return (
-    <Plane ref={ref} scale={scale} position={[0, 20, 10]}>
-      <meshPhysicalMaterial
+    <Box ref={ref} position={[0, 0, 130]}>
+      <meshBasicMaterial
+        side={THREE.BackSide}
         map={texture}
         depthTest={false}
-        color={0x9ff59a}
         transparent
         opacity={0.8}
       />
-    </Plane>
+    </Box>
   );
 }
 
@@ -91,15 +97,26 @@ export default function App() {
         />
         <Suspense fallback={null}>
           <group position={[0, -12, 0]}>
-            <Bottles />
+            <Physics gravity={[0, -100, 0]}>
+              <Bottles />
+              <Mouse />
+              <PhyPlane
+                rotation={[-Math.PI / 2, 0, 0]}
+                position={[0, 0.1, 0]}
+              />
+              <PhyPlane rotation={[0, 0, 0]} position={[0, 0, -100]} />
+              <PhyPlane rotation={[0, -Math.PI / 2, 0]} position={[30, 0, 0]} />
+              <PhyPlane rotation={[0, Math.PI / 2, 0]} position={[-30, 0, 0]} />
+            </Physics>
             <ContactShadows
               position={[0, -0.01, 0]}
               rotation={[Math.PI / 2, 0, 0]}
               opacity={0.8}
-              width={50}
-              height={50}
+              width={100}
+              height={100}
               blur={1}
               far={40}
+              renderOrder={1}
             />
             <Background />
           </group>
@@ -107,6 +124,7 @@ export default function App() {
         </Suspense>
         <OrbitControls enableRotate={false} />
       </Canvas>
+      <Stats />
       <Loader />
     </>
   );

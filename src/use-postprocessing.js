@@ -10,14 +10,10 @@ import {
   BlendFunction,
   KernelSize,
   GammaCorrectionEffect,
-  SSAOEffect,
-  SMAAEffect,
   NormalPass,
-  SMAAImageLoader,
 } from "postprocessing";
 
 function usePostprocessing(cameraLayer1, cameraLayer2) {
-  const smaa = useLoader(SMAAImageLoader);
   const { gl, scene, size, camera } = useThree();
 
   const [composer, savePassEnv, savePassBackface] = useMemo(() => {
@@ -41,28 +37,7 @@ function usePostprocessing(cameraLayer1, cameraLayer2) {
       height: 100,
     });
 
-    const SMAA = new SMAAEffect(...smaa);
-    SMAA.colorEdgesMaterial.setEdgeDetectionThreshold(0.2);
-    const aOconfig = {
-      blendFunction: BlendFunction.MULTIPLY,
-      samples: 64, // May get away with less samples
-      rings: 10, // Just make sure this isn't a multiple of samples
-      distanceThreshold: 1,
-      distanceFalloff: 1,
-      rangeThreshold: 1, // Controls sensitivity based on camera view distance **
-      rangeFalloff: 0.01,
-      luminanceInfluence: 1,
-      radius: 1, // Spread range
-      intensity: 40,
-      bias: 0.5,
-    };
-    const AO = new SSAOEffect(
-      camera,
-      normalPass.renderTarget.texture,
-      aOconfig
-    );
-
-    const effectPass = new EffectPass(camera, SMAA, AO, BLOOM);
+    const effectPass = new EffectPass(camera, BLOOM);
 
     const backfaceEffectPass = new EffectPass(
       cameraLayer2,
@@ -82,7 +57,7 @@ function usePostprocessing(cameraLayer1, cameraLayer2) {
     composer.addPass(effectPass);
 
     return [composer, savePassEnv, savePassBackface];
-  }, [gl, scene, camera, smaa, cameraLayer1, cameraLayer2]);
+  }, [gl, scene, camera, cameraLayer1, cameraLayer2]);
 
   useEffect(() => void composer.setSize(size.width, size.height), [
     composer,
