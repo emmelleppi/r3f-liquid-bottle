@@ -165,7 +165,7 @@ function Bottle() {
                   value: new THREE.Vector4(1, 1, 1, 1),
                 },
                 tint: {
-                  value: new THREE.Vector4(1, 1, 0, 0.75),
+                  value: new THREE.Vector4(1, 1, 0, 0.5),
                 },
                 rim: {
                   value: 0.05,
@@ -189,11 +189,10 @@ function Bottle() {
           <meshPhysicalMaterial
             transparent
             side={THREE.BackSide}
-            transmission={0.7}
+            transmission={0.1}
             metalness={1}
             roughness={0}
             clearcoat={1}
-            clearcoatRoughness={0}
             opacity={0.15}
           />
         </mesh>
@@ -204,11 +203,10 @@ function Bottle() {
         >
           <meshPhysicalMaterial
             transparent
-            transmission={0.1}
+            transmission={0.4}
             metalness={1}
             roughness={0}
             clearcoat={1}
-            clearcoatRoughness={0}
             opacity={0.15}
           />
         </mesh>
@@ -217,10 +215,10 @@ function Bottle() {
             transparent
             alphaTest={0.8}
             side={THREE.DoubleSide}
-            metalness={0.3}
+            metalness={0.2}
             roughness={1}
-            clearcoat={0}
-            clearcoatRoughness={0}
+            clearcoat={0.5}
+            clearcoatRoughness={0.8}
             map={tassoni}
           />
         </mesh>

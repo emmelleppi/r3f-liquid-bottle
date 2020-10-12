@@ -54,16 +54,18 @@ function Background() {
 }
 
 export default function App() {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
   return (
     <>
       <Canvas
-        pixelRatio={1.5}
         concurrent
         colorManagement
-        camera={{ position: [0, 0, 130], fov: 15 }}
         onCreated={({ gl }) => {
           gl.setClearColor(0x9ff59a);
         }}
+        camera={{ position: [0, 0, 130], fov: 15 }}
+        pixelRatio={Math.min(2, isMobile ? window.devicePixelRatio : 1.5)}
         gl={{
           powerPreference: "high-performance",
           antialias: false,
@@ -71,19 +73,17 @@ export default function App() {
           alpha: false,
         }}
       >
-        <ambientLight intensity={0.3} />
         <spotLight
           penumbra={1}
-          angle={0.35}
-          position={[4, -15, 5]}
-          intensity={2}
+          angle={1.2}
+          position={[50, 3, 10]}
+          intensity={8}
         />
         <rectAreaLight
-          position={[-100, 0, 0]}
-          color="#1FD0F6"
+          position={[-20, 5, 20]}
           width={50}
           height={50}
-          intensity={3}
+          intensity={6}
           onUpdate={(self) => self.lookAt(0, 0, 0)}
         />
         <Suspense fallback={null}>
@@ -93,21 +93,20 @@ export default function App() {
               <Mouse />
               <PhyPlane
                 rotation={[-Math.PI / 2, 0, 0]}
-                position={[0, 0.2, 0]}
+                position={[0, 0.3, 0]}
               />
               <PhyPlane rotation={[0, 0, 0]} position={[0, 0, -100]} />
               <PhyPlane rotation={[0, -Math.PI / 2, 0]} position={[30, 0, 0]} />
               <PhyPlane rotation={[0, Math.PI / 2, 0]} position={[-30, 0, 0]} />
             </Physics>
             <ContactShadows
-              position={[0, -0.01, 0]}
+              position={[0, 0, 0]}
               rotation={[Math.PI / 2, 0, 0]}
-              opacity={0.8}
+              opacity={0.6}
               width={100}
               height={100}
               blur={1}
               far={40}
-              renderOrder={1}
             />
             <Background />
           </group>

@@ -45,7 +45,7 @@ function usePostprocessing(cameraLayer1, cameraLayer2) {
     backfaceEffectPass.encodeOutput = false; // Prevent potential bugs.
     const renderEnvEffectPass = new EffectPass(
       cameraLayer1,
-      new GammaCorrectionEffect({ gamma: 5 })
+      new GammaCorrectionEffect({ gamma: 7 })
     );
     renderEnvEffectPass.encodeOutput = false; // Prevent potential bugs.
     const renderEffectPass = new EffectPass(
