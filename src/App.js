@@ -65,7 +65,7 @@ export default function App() {
           gl.setClearColor(0x9ff59a);
         }}
         camera={{ position: [0, 0, 130], fov: 15 }}
-        pixelRatio={1.5}
+        pixelRatio={1.8}
         gl={{
           powerPreference: "high-performance",
           antialias: false,
