@@ -26,14 +26,13 @@ function usePostprocessing(cameraLayer1, cameraLayer2) {
     const renderPass = new RenderPass(scene, camera);
     const renderEnvPass = new RenderPass(scene, cameraLayer1);
     const renderBackfacePass = new RenderPass(scene, cameraLayer2);
-    const normalPass = new NormalPass(scene, camera);
 
     const BLOOM = new BloomEffect({
-      opacity: 0.8,
+      opacity: 1,
       blendFunction: BlendFunction.SCREEN,
       kernelSize: KernelSize.LARGE,
-      luminanceThreshold: 4,
-      luminanceSmoothing: 5,
+      luminanceThreshold: 0.85,
+      luminanceSmoothing: 0.1,
       height: 100,
     });
 
@@ -44,17 +43,28 @@ function usePostprocessing(cameraLayer1, cameraLayer2) {
       new GammaCorrectionEffect({ gamma: 0.5 })
     );
     backfaceEffectPass.encodeOutput = false; // Prevent potential bugs.
+    const renderEnvEffectPass = new EffectPass(
+      cameraLayer1,
+      new GammaCorrectionEffect({ gamma: 5 })
+    );
+    renderEnvEffectPass.encodeOutput = false; // Prevent potential bugs.
+    const renderEffectPass = new EffectPass(
+      camera,
+      new GammaCorrectionEffect({ gamma: 1 })
+    );
+    renderEffectPass.encodeOutput = false; // Prevent potential bugs.
 
     composer.addPass(renderBackfacePass);
     composer.addPass(backfaceEffectPass);
     composer.addPass(savePassBackface);
 
     composer.addPass(renderEnvPass);
+    composer.addPass(renderEnvEffectPass);
     composer.addPass(savePassEnv);
 
     composer.addPass(renderPass);
-    composer.addPass(normalPass);
     composer.addPass(effectPass);
+    composer.addPass(renderEffectPass);
 
     return [composer, savePassEnv, savePassBackface];
   }, [gl, scene, camera, cameraLayer1, cameraLayer2]);

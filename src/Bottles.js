@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { useFrame, useLoader, useResource, useThree } from "react-three-fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { draco } from "drei/loaders/draco";
@@ -14,6 +14,7 @@ import {
   vert as vertRefraction,
 } from "./materials/refractionMaterial";
 import { useDragConstraint } from "./mouse";
+import { PerspectiveCamera } from "drei";
 
 function Bottle() {
   const bubbleMaterial = useRef();
@@ -25,10 +26,11 @@ function Bottle() {
 
   const bodyArgs = [2.5, 3, 20, 32];
   const [ref] = useCylinder(() => ({
-    mass: 10,
+    mass: 1,
     args: bodyArgs,
     position: [0, 20, 0],
-    linearDamping: 0.3,
+    rotation: [0, -1.8, 0],
+    linearDamping: 0.0,
     angularDamping: 0.75,
   }));
   const bind = useDragConstraint(ref);
@@ -48,7 +50,7 @@ function Bottle() {
     refCameraLayer2.current
   );
 
-  const [tassoni] = useTextureLoader(["/tassoni.jpg"]);
+  const [tassoni] = useTextureLoader(["/tassoni.png"]);
   tassoni.center = new THREE.Vector2(0.5, 0.5);
   tassoni.rotation = -Math.PI / 2;
   tassoni.repeat = new THREE.Vector2(-1, 1);
@@ -106,18 +108,18 @@ function Bottle() {
     lastPos.current = ref.current.position.clone();
     lastRot.current = ref.current.rotation.clone().toVector3();
     bubbleMaterial.current.material.uniforms.fillAmount.value =
-      -ref.current.position.y + 6;
+      -ref.current.position.y + 7;
   });
 
   return (
     <>
-      <perspectiveCamera
+      <PerspectiveCamera
         ref={refCameraLayer1}
         args={[15]}
         position={[0, 0, 130]}
         layers={[1]}
       />
-      <perspectiveCamera
+      <PerspectiveCamera
         ref={refCameraLayer2}
         args={[15]}
         position={[0, 0, 130]}
@@ -125,32 +127,15 @@ function Bottle() {
       />
       <group ref={ref} dispose={null} {...bind}>
         <group position={[0, 10.01, 0]}>
-          <mesh geometry={nodes["Mesh.002_0"].geometry} renderOrder={5}>
-            <meshPhysicalMaterial
-              color={new THREE.Color("green")}
-              metalness={1}
-              roughness={1}
-            />
+          <mesh geometry={nodes["Mesh.002_0"].geometry}>
+            <meshPhysicalMaterial color="green" metalness={1} roughness={1} />
           </mesh>
-          <mesh
-            geometry={nodes["Mesh.002_1"].geometry}
-            castShadow
-            renderOrder={5}
-          >
-            <meshPhysicalMaterial
-              color={new THREE.Color("white")}
-              metalness={1}
-              roughness={0}
-              clearcoat={1}
-            />
+          <mesh geometry={nodes["Mesh.002_1"].geometry} castShadow>
+            <meshPhysicalMaterial metalness={1} roughness={0} clearcoat={1} />
           </mesh>
         </group>
         <group position={[0, -0.04, 0]} scale={[0.98, 0.98, 0.98]}>
-          <mesh
-            ref={bubbleMaterial}
-            geometry={nodes.Coca_Outside.geometry}
-            renderOrder={1}
-          >
+          <mesh ref={bubbleMaterial} geometry={nodes.Coca_Outside.geometry}>
             <shaderMaterial
               transparent
               vertexShader={vertRefraction}
@@ -177,13 +162,13 @@ function Bottle() {
                   value: new THREE.Vector4(1, 1, 1, 1),
                 },
                 foamColor: {
-                  value: new THREE.Vector4(1, 1, 0, 0.5),
+                  value: new THREE.Vector4(1, 1, 1, 1),
                 },
                 tint: {
-                  value: new THREE.Vector4(1, 1, 0, 1),
+                  value: new THREE.Vector4(1, 1, 0, 0.75),
                 },
                 rim: {
-                  value: 0.1,
+                  value: 0.05,
                 },
                 rimPower: {
                   value: 1,
@@ -200,13 +185,8 @@ function Bottle() {
             />
           </mesh>
         </group>
-        <mesh
-          geometry={nodes.Coca_Outside.geometry}
-          position={[0, -0.04, 0]}
-          renderOrder={1}
-        >
+        <mesh geometry={nodes.Coca_Outside.geometry} position={[0, -0.04, 0]}>
           <meshPhysicalMaterial
-            color={0xffffff}
             transparent
             side={THREE.BackSide}
             transmission={0.7}
@@ -221,10 +201,8 @@ function Bottle() {
           geometry={nodes.Coca_Outside.geometry}
           position={[0, -0.04, 0]}
           castShadow
-          renderOrder={2}
         >
           <meshPhysicalMaterial
-            color={0xffffff}
             transparent
             transmission={0.1}
             metalness={1}
@@ -234,18 +212,15 @@ function Bottle() {
             opacity={0.15}
           />
         </mesh>
-        <mesh
-          geometry={nodes.Label.geometry}
-          position={[1.69, 0.84, -0.01]}
-          renderOrder={3}
-        >
+        <mesh geometry={nodes.Label.geometry} position={[1.69, 0.84, -0.01]}>
           <meshPhysicalMaterial
+            transparent
+            alphaTest={0.8}
             side={THREE.DoubleSide}
-            color={0xffffff}
-            metalness={0}
+            metalness={0.3}
             roughness={1}
-            clearcoat={1}
-            clearcoatRoughness={1}
+            clearcoat={0}
+            clearcoatRoughness={0}
             map={tassoni}
           />
         </mesh>

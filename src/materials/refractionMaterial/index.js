@@ -21,7 +21,7 @@ varying vec4 worldPosition;
 varying float fillEdge;
 
 float ior = 1.5;
-float a = 0.33;
+float a = 0.25;
 
 vec3 fogColor = vec3(1.0);
 vec3 reflectionColor = vec3(1.0);

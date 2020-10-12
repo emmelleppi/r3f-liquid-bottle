@@ -11,7 +11,6 @@ import {
   ContactShadows,
   OrbitControls,
   Stats,
-  useAspect,
   useTextureLoader,
 } from "drei";
 import useLayers from "./use-layers";
@@ -46,16 +45,10 @@ function Background() {
   const ref = useLayers([1]);
   const texture = useTextureLoader("/aft_lounge.jpg");
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat = new THREE.Vector2(8, 8);
+  texture.repeat = new THREE.Vector2(2, 2);
   return (
     <Box ref={ref} position={[0, 0, 130]}>
-      <meshBasicMaterial
-        side={THREE.BackSide}
-        map={texture}
-        depthTest={false}
-        transparent
-        opacity={0.8}
-      />
+      <meshBasicMaterial side={THREE.BackSide} map={texture} />
     </Box>
   );
 }
@@ -72,11 +65,9 @@ export default function App() {
           gl.setClearColor(0x9ff59a);
         }}
         gl={{
-          logarithmicDepthBuffer: true,
           powerPreference: "high-performance",
           antialias: false,
           stencil: false,
-          depth: false,
           alpha: false,
         }}
       >
@@ -102,7 +93,7 @@ export default function App() {
               <Mouse />
               <PhyPlane
                 rotation={[-Math.PI / 2, 0, 0]}
-                position={[0, 0.1, 0]}
+                position={[0, 0.2, 0]}
               />
               <PhyPlane rotation={[0, 0, 0]} position={[0, 0, -100]} />
               <PhyPlane rotation={[0, -Math.PI / 2, 0]} position={[30, 0, 0]} />
@@ -122,7 +113,6 @@ export default function App() {
           </group>
           <Environment />
         </Suspense>
-        <OrbitControls enableRotate={false} />
       </Canvas>
       <Stats />
       <Loader />
