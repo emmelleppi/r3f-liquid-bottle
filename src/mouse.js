@@ -1,19 +1,14 @@
 import { useEffect, useCallback, createRef } from "react";
 import { useFrame, useThree } from "react-three-fiber";
 import { usePointToPointConstraint, useSphere } from "use-cannon";
-
-export const cursor = createRef();
+import { cursor } from "./store";
 
 export function useDragConstraint(body) {
   const [, , api] = usePointToPointConstraint(cursor, body, {
     pivotA: [0, 10, 0],
     pivotB: [0, 10, 0],
   });
-
-  useEffect(() => void api.disable(), [api]);
-
   const onPointerUp = useCallback(() => api.disable(), [api]);
-
   const onPointerDown = useCallback(
     (e) => {
       e.stopPropagation();
@@ -21,8 +16,9 @@ export function useDragConstraint(body) {
       api.enable();
     },
     [api]
-  );
-
+    );
+    useEffect(() => void api.disable(), [api]);
+    
   return { onPointerUp, onPointerDown };
 }
 
@@ -30,7 +26,6 @@ export function useDragConstraint(body) {
 export function Mouse() {
   const { viewport } = useThree();
   const [, api] = useSphere(() => ({ type: "Static", args: [0.5] }), cursor);
-
   return useFrame((state) =>
     api.position.set(
       (state.mouse.x * viewport.width) / 2,

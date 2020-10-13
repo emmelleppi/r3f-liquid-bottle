@@ -1,37 +1,14 @@
 import * as THREE from "three";
-import React, { Suspense, useEffect } from "react";
-import { Canvas, useLoader, useThree } from "react-three-fiber";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+import React, { Suspense } from "react";
+import { Canvas, useResource } from "react-three-fiber";
 import { Loader } from "drei/prototyping/Loader";
-import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib";
 import { Physics, usePlane } from "use-cannon";
-import Bottles from "./Bottles";
-import {
-  Box,
-  ContactShadows,
-  OrbitControls,
-  Stats,
-  useTextureLoader,
-} from "drei";
-import useLayers from "./use-layers";
+import Bottle from "./Bottle";
+import { Box, ContactShadows, PerspectiveCamera, Plane, useAspect, useTextureLoader } from "drei";
 import { Mouse } from "./mouse";
-
-RectAreaLightUniformsLib.init();
-
-function Environment({ background = false }) {
-  const { gl, scene } = useThree();
-  const texture = useLoader(RGBELoader, "/aft_lounge_1k.hdr");
-  useEffect(() => {
-    const gen = new THREE.PMREMGenerator(gl);
-    const envMap = gen.fromEquirectangular(texture).texture;
-    if (background) scene.background = envMap;
-    scene.environment = envMap;
-    texture.dispose();
-    gen.dispose();
-    return () => (scene.environment = scene.background = null);
-  }, [texture]);
-  return null;
-}
+import Environment from "./Environment";
+import { CAMERA_PROPS, refCameraLayer1, refCameraLayer2 } from "./store";
+import usePostprocessing from "./use-postprocessing";
 
 function PhyPlane(props) {
   usePlane(() => ({
@@ -41,30 +18,82 @@ function PhyPlane(props) {
   return null;
 }
 
+function PhyPlanes() {
+  return (
+    <>
+      <PhyPlane rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.3, 0]} />
+      <PhyPlane position={[0, 0, -100]} />
+      <PhyPlane rotation={[Math.PI, 0, 0]} position={[0, 0, 75]} />
+      <PhyPlane rotation={[0, -Math.PI / 2, 0]} position={[30, 0, 0]} />
+      <PhyPlane rotation={[0, Math.PI / 2, 0]} position={[-30, 0, 0]} />
+    </>
+  );
+}
+
 function Background() {
-  const ref = useLayers([1]);
   const texture = useTextureLoader("/aft_lounge.jpg");
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat = new THREE.Vector2(2, 2);
+  texture.repeat = new THREE.Vector2(4, 4);
   return (
-    <Box ref={ref} position={[0, 0, 130]}>
-      <meshBasicMaterial side={THREE.BackSide} map={texture} />
-    </Box>
+    <>
+      <Box position={CAMERA_PROPS.position} layers={1} >
+        <meshBasicMaterial side={THREE.BackSide} map={texture} />
+      </Box>
+    </>
+  );
+}
+
+function Scene() {
+  const scale = useAspect("cover", 1024, 512, 2);
+  useResource(refCameraLayer1);
+  useResource(refCameraLayer2);
+  usePostprocessing()
+  return (
+    <>
+      <PerspectiveCamera ref={refCameraLayer1} layers={1} {...CAMERA_PROPS} />
+      <PerspectiveCamera ref={refCameraLayer2} layers={2} {...CAMERA_PROPS} />
+      <spotLight
+        penumbra={1}
+        angle={1.2}
+        position={[50, 3, 10]}
+        intensity={3}
+      />
+      <spotLight
+        penumbra={1}
+        angle={1.2}
+        position={[-20, 5, 20]}
+        intensity={3}
+      />
+      <group position={[0, -12, 0]}>
+        <Physics gravity={[0, -100, 0]}>
+          <Bottle />
+          <Mouse />
+          <PhyPlanes />
+        </Physics>
+        <ContactShadows
+          rotation={[Math.PI / 2, 0, 0]}
+          opacity={0.2}
+          width={100}
+          height={100}
+          blur={1}
+          far={40}
+        />
+      </group>
+      <Background />
+      <Plane scale={scale} position={[0, 0, -100]}>
+        <meshPhongMaterial color="green" />
+      </Plane>
+      <Environment />
+    </>
   );
 }
 
 export default function App() {
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
   return (
     <>
       <Canvas
         concurrent
-        colorManagement
-        onCreated={({ gl }) => {
-          gl.setClearColor(0x9ff59a);
-        }}
-        camera={{ position: [0, 0, 130], fov: 15 }}
+        camera={CAMERA_PROPS}
         pixelRatio={1.8}
         gl={{
           powerPreference: "high-performance",
@@ -73,47 +102,10 @@ export default function App() {
           alpha: false,
         }}
       >
-        <spotLight
-          penumbra={1}
-          angle={1.2}
-          position={[50, 3, 10]}
-          intensity={8}
-        />
-        <rectAreaLight
-          position={[-20, 5, 20]}
-          width={50}
-          height={50}
-          intensity={6}
-          onUpdate={(self) => self.lookAt(0, 0, 0)}
-        />
         <Suspense fallback={null}>
-          <group position={[0, -12, 0]}>
-            <Physics gravity={[0, -100, 0]}>
-              <Bottles />
-              <Mouse />
-              <PhyPlane
-                rotation={[-Math.PI / 2, 0, 0]}
-                position={[0, 0.3, 0]}
-              />
-              <PhyPlane rotation={[0, 0, 0]} position={[0, 0, -100]} />
-              <PhyPlane rotation={[0, -Math.PI / 2, 0]} position={[30, 0, 0]} />
-              <PhyPlane rotation={[0, Math.PI / 2, 0]} position={[-30, 0, 0]} />
-            </Physics>
-            <ContactShadows
-              position={[0, 0, 0]}
-              rotation={[Math.PI / 2, 0, 0]}
-              opacity={0.6}
-              width={100}
-              height={100}
-              blur={1}
-              far={40}
-            />
-            <Background />
-          </group>
-          <Environment />
+          <Scene />
         </Suspense>
       </Canvas>
-      <Stats />
       <Loader />
     </>
   );

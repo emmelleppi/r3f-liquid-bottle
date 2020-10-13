@@ -1,26 +1,11 @@
 import * as THREE from "three";
 import React, { Suspense, useEffect, useRef } from "react";
-import { Canvas, useFrame, useLoader, useThree } from "react-three-fiber";
+import { Canvas, useFrame, useThree } from "react-three-fiber";
 import { useTextureLoader, Torus } from "drei";
 import { frag, vert } from "./materials/liquidMaterial";
 import clamp from "lodash/clamp";
 import lerp from "lerp";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
-
-function Environment({ background = false }) {
-  const { gl, scene } = useThree();
-  const texture = useLoader(RGBELoader, "/aft_lounge_1k.hdr");
-  useEffect(() => {
-    const gen = new THREE.PMREMGenerator(gl);
-    const envMap = gen.fromEquirectangular(texture).texture;
-    if (background) scene.background = envMap;
-    scene.environment = envMap;
-    texture.dispose();
-    gen.dispose();
-    return () => (scene.environment = scene.background = null);
-  }, [texture]);
-  return null;
-}
+import Environment from "./Environment";
 
 function Background() {
   const { scene } = useThree();
@@ -33,7 +18,7 @@ function Background() {
   return null;
 }
 
-function Marcello(props) {
+function Liquid(props) {
   const ref = useRef();
   const bubbleMaterial = useRef();
 
@@ -199,7 +184,7 @@ export default function App() {
         <ambientLight intensity={0.3} />
         <pointLight position={[0, -0, 10]} intensity={2} />
         <Suspense fallback={null}>
-          <Marcello position={[0, 0, -10]} />
+          <Liquid position={[0, 0, -10]} />
           <Environment />
           <Background />
         </Suspense>

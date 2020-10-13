@@ -1,4 +1,4 @@
-import { useFrame, useLoader, useThree } from "react-three-fiber";
+import { useFrame, useThree } from "react-three-fiber";
 import * as THREE from "three";
 import { useEffect, useMemo } from "react";
 import {
@@ -10,22 +10,23 @@ import {
   BlendFunction,
   KernelSize,
   GammaCorrectionEffect,
-  NormalPass,
 } from "postprocessing";
+import { refCameraLayer1, refCameraLayer2, savePassEnv, savePassBackface } from "./store";
 
-function usePostprocessing(cameraLayer1, cameraLayer2) {
+function usePostprocessing() {
   const { gl, scene, size, camera } = useThree();
 
-  const [composer, savePassEnv, savePassBackface] = useMemo(() => {
+  const [composer] = useMemo(() => {
     const composer = new EffectComposer(gl, {
       frameBufferType: THREE.HalfFloatType,
     });
 
-    const savePassEnv = new SavePass();
-    const savePassBackface = new SavePass();
+    const renderEnvPass = new RenderPass(scene, refCameraLayer1.current);
     const renderPass = new RenderPass(scene, camera);
-    const renderEnvPass = new RenderPass(scene, cameraLayer1);
-    const renderBackfacePass = new RenderPass(scene, cameraLayer2);
+    const renderBackfacePass = new RenderPass(scene, refCameraLayer2.current);
+
+    savePassEnv.current = new SavePass();
+    savePassBackface.current = new SavePass();
 
     const BLOOM = new BloomEffect({
       opacity: 1,
@@ -35,39 +36,37 @@ function usePostprocessing(cameraLayer1, cameraLayer2) {
       luminanceSmoothing: 0.1,
       height: 100,
     });
-
     const effectPass = new EffectPass(camera, BLOOM);
-
-    const backfaceEffectPass = new EffectPass(
-      cameraLayer2,
-      new GammaCorrectionEffect({ gamma: 0.5 })
-    );
-    backfaceEffectPass.encodeOutput = false; // Prevent potential bugs.
-    const renderEnvEffectPass = new EffectPass(
-      cameraLayer1,
-      new GammaCorrectionEffect({ gamma: 7 })
-    );
-    renderEnvEffectPass.encodeOutput = false; // Prevent potential bugs.
     const renderEffectPass = new EffectPass(
       camera,
       new GammaCorrectionEffect({ gamma: 1 })
     );
     renderEffectPass.encodeOutput = false; // Prevent potential bugs.
+    const backfaceEffectPass = new EffectPass(
+      refCameraLayer2.current,
+      new GammaCorrectionEffect({ gamma: 0.5 })
+    );
+    backfaceEffectPass.encodeOutput = false; // Prevent potential bugs.
+    const renderEnvEffectPass = new EffectPass(
+      refCameraLayer1.current,
+      new GammaCorrectionEffect({ gamma: 5 })
+    );
+    renderEnvEffectPass.encodeOutput = false; // Prevent potential bugs.
 
     composer.addPass(renderBackfacePass);
     composer.addPass(backfaceEffectPass);
-    composer.addPass(savePassBackface);
+    composer.addPass(savePassBackface.current);
 
     composer.addPass(renderEnvPass);
     composer.addPass(renderEnvEffectPass);
-    composer.addPass(savePassEnv);
+    composer.addPass(savePassEnv.current);
 
     composer.addPass(renderPass);
     composer.addPass(effectPass);
     composer.addPass(renderEffectPass);
 
-    return [composer, savePassEnv, savePassBackface];
-  }, [gl, scene, camera, cameraLayer1, cameraLayer2]);
+    return [composer];
+  }, [gl, scene, camera, refCameraLayer1.current, refCameraLayer2.current]);
 
   useEffect(() => void composer.setSize(size.width, size.height), [
     composer,
@@ -75,8 +74,6 @@ function usePostprocessing(cameraLayer1, cameraLayer2) {
   ]);
 
   useFrame((_, delta) => void composer.render(delta), 1);
-
-  return [savePassEnv, savePassBackface];
 }
 
 export default usePostprocessing;

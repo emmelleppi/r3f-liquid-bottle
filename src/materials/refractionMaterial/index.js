@@ -34,7 +34,7 @@ void main() {
     // screen coordinates
     vec2 uv = gl_FragCoord.xy / resolution;
 
-    // INIT REFRACTION SHADER
+    // -------- INIT REFRACTION SHADER -------- 
     // sample backface data from texture
     vec3 backfaceNormal = texture2D(backfaceMap, uv).rgb;
 
@@ -55,10 +55,10 @@ void main() {
 
     // apply fresnel
     color.rgb = mix(color.rgb, reflectionColor, fresnel);
-    // END REFRACTION SHADER
+    // -------- END REFRACTION SHADER --------
     
     
-    // INIT LIQUID SHADER
+    // -------- INIT LIQUID SHADER --------
     vec4 col = tint;
     float dotProduct = 1.0 - pow(dot(worldNormal, viewDirection), rimPower);
     vec4 RimResult = vec4(smoothstep(0.5, 1.0, dotProduct));
@@ -77,7 +77,7 @@ void main() {
     vec4 finalResult = resultColored + foamColored;				
     finalResult.rgb += RimResult.rgb;
 
-    // END LIQUID SHADER
+    // -------- END LIQUID SHADER -------- 
 
     gl_FragColor = finalResult * color;
 }`;
@@ -115,8 +115,10 @@ void main() {
 
     // get world position of the vertex
     worldPosition = modelMatrix * vec4(position, 1.0);
+
     // rotate it around XY
     vec3 worldPosX = RotateAroundYInDegrees(vec4(position, 0.0), 360.0).xyz;
+    
     // rotate around XZ
     vec3 worldPosZ = vec3(worldPosX.y, worldPosX.z, worldPosX.x);		
     

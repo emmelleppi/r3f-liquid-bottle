@@ -31,8 +31,10 @@ void main() {
 
     // get world position of the vertex
     worldPosition = modelMatrix * vec4(position, 1.0);
+    
     // rotate it around XY
     vec3 worldPosX = RotateAroundYInDegrees(vec4(position, 0.0), 360.0).xyz;
+    
     // rotate around XZ
     vec3 worldPosZ = vec3(worldPosX.y, worldPosX.z, worldPosX.x);		
     
@@ -88,7 +90,7 @@ void main() {
     // color of backfaces/ top
     vec4 _topColor = topColor * (foam + result);
 
-    //VFACE returns positive for front facing, negative for backfacing
+    //gl_FrontFacing is TRUE for front facing, FALSE for backfacing
     gl_FragColor = gl_FrontFacing ? finalResult : _topColor; 
 }
 `;
