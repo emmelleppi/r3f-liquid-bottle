@@ -90,7 +90,7 @@ function Liquid(props) {
       lastRot.current = ref.current.rotation.clone().toVector3();
 
       bubbleMaterial.current.material.uniforms.fillAmount.value =
-        -ref.current.position.y - 0.2;
+        -ref.current.position.y + 0.2;
     }
   });
 
@@ -105,26 +105,26 @@ function Liquid(props) {
             roughness={0}
             transparent
             clearcoat={1}
-            color={0xffffff}
-            opacity={0.1}
+            color={0x00ffff}
+            opacity={0.3}
           />
         </Torus>
-        <Torus args={[1, 0.5, 64, 64]} renderOrder={2}>
+        <Torus args={[1, 0.5, 64, 64]} renderOrder={1}>
           <meshPhysicalMaterial
             transmission={0.7}
             metalness={1}
             roughness={0}
             transparent
             clearcoat={1}
-            color={0xffffff}
-            opacity={0.1}
+            color={0x00ffff}
+            opacity={0.3}
           />
         </Torus>
         <Torus
-          renderOrder={1}
+          renderOrder={0}
           ref={bubbleMaterial}
           args={[1, 0.5, 64, 64]}
-          scale={[0.98, 0.98, 0.98]}
+          scale={[0.99, 0.99, 0.99]}
         >
           <shaderMaterial
             transparent
@@ -145,19 +145,19 @@ function Liquid(props) {
                 value: 0.01,
               },
               topColor: {
-                value: new THREE.Vector4(0, 0, 1, 1),
+                value: new THREE.Vector4(128 / 255, 0, 1, 0.7),
               },
               rimColor: {
                 value: new THREE.Vector4(1, 1, 1, 1),
               },
               foamColor: {
-                value: new THREE.Vector4(1, 0, 0, 1),
+                value: new THREE.Vector4(128 / 255, 0, 1, 0.7),
               },
               tint: {
-                value: new THREE.Vector4(1, 1, 0, 1),
+                value: new THREE.Vector4(1, 0, 1, 0.7),
               },
               rim: {
-                value: 0.03,
+                value: 0.02,
               },
               rimPower: {
                 value: 1,
@@ -174,12 +174,9 @@ export default function App() {
   return (
     <>
       <Canvas
-        pixelRatio={1.5}
+        pixelRatio={2}
         colorManagement
         camera={{ position: [0, 0, 5], fov: 15 }}
-        onCreated={({ gl }) => {
-          gl.setClearColor(0x9ff59a);
-        }}
       >
         <ambientLight intensity={0.3} />
         <pointLight position={[0, -0, 10]} intensity={2} />

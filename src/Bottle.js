@@ -64,10 +64,10 @@ function Bottle() {
         value: new THREE.Vector4(1, 1, 1, 1),
       },
       tint: {
-        value: new THREE.Vector4(1, 1, 0, 0.5),
+        value: new THREE.Vector4(1, 1, 0, 0.7),
       },
       rim: {
-        value: 0.05,
+        value: 0.08,
       },
       rimPower: {
         value: 1,
