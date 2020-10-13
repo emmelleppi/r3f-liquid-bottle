@@ -1,17 +1,14 @@
 import * as THREE from "three";
 import React, { useMemo, useRef } from "react";
-import { useFrame, useLoader, useThree } from "react-three-fiber";
+import { useFrame, useLoader, useThree, extend } from "react-three-fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { draco } from "drei/loaders/draco";
 import { useTextureLoader } from "drei/loaders/useTextureLoader";
 import lerp from "lerp";
 import clamp from "lodash/clamp";
 import { useCylinder } from "use-cannon";
-import { frag, vert } from "./materials/backfaceMaterial";
-import {
-  frag as fragRefraction,
-  vert as vertRefraction,
-} from "./materials/refractionMaterial";
+import { BackfaceMaterial } from "./materials/backfaceMaterial";
+import { LiquidRefractionMaterial } from "./materials/liquidRefractionMaterial";
 import { useDragConstraint } from "./mouse";
 import {
   BOTTLE,
@@ -23,6 +20,8 @@ import {
   savePassBackface,
   savePassEnv,
 } from "./store";
+
+extend({ BackfaceMaterial, LiquidRefractionMaterial })
 
 function Bottle() {
   const liquidBody = useRef();
@@ -40,38 +39,14 @@ function Bottle() {
 
   const uniforms = useMemo(
     () => ({
-      envMap: { value: savePassEnv.current.renderTarget.texture },
-      backfaceMap: { value: savePassBackface.current.renderTarget.texture },
-      resolution: {
-        value: new THREE.Vector2(size.width, size.height),
-      },
-      fillAmount: {
-        value: 0,
-      },
-      wobbleX: {
-        value: 0,
-      },
-      wobbleZ: {
-        value: 0,
-      },
-      topColor: {
-        value: new THREE.Vector4(0, 0, 1, 0),
-      },
-      rimColor: {
-        value: new THREE.Vector4(1, 1, 1, 1),
-      },
-      foamColor: {
-        value: new THREE.Vector4(1, 1, 1, 1),
-      },
-      tint: {
-        value: new THREE.Vector4(1, 1, 0, 0.7),
-      },
-      rim: {
-        value: 0.08,
-      },
-      rimPower: {
-        value: 1,
-      },
+      envMap: savePassEnv.current.renderTarget.texture,
+      backfaceMap: savePassBackface.current.renderTarget.texture,
+      resolution: new THREE.Vector2(size.width, size.height),
+      topColor:  new THREE.Vector4(0, 0, 1, 0),
+      rimColor:  new THREE.Vector4(1, 1, 1, 1),
+      foamColor:  new THREE.Vector4(1, 1, 1, 1),
+      tint:  new THREE.Vector4(1, 1, 0, 0.7),
+      rim: 0.08,
     }),
     [savePassEnv.current, size, savePassBackface.current]
   );
@@ -145,19 +120,15 @@ function Bottle() {
         </group>
         <group position={[0, -0.04, 0]} scale={[0.98, 0.98, 0.98]}>
           <mesh ref={liquidBody} geometry={nodes.Coca_Outside.geometry}>
-            <shaderMaterial
+            <liquidRefractionMaterial
               transparent
-              vertexShader={vertRefraction}
-              fragmentShader={fragRefraction}
-              uniforms={uniforms}
+              {...uniforms}
             />
           </mesh>
           <mesh layers={2} geometry={nodes.Coca_Outside.geometry}>
-            <shaderMaterial
+            <backfaceMaterial
               transparent
               side={THREE.BackSide}
-              vertexShader={vert}
-              fragmentShader={frag}
             />
           </mesh>
         </group>

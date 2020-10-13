@@ -1,3 +1,5 @@
+import { shaderMaterial } from "drei";
+
 export const frag = `
 varying vec3 worldNormal;
 void main() {
@@ -18,3 +20,9 @@ void main() {
   worldNormal = normalize( modelViewMatrix * transformedNormal).xyz;
   gl_Position = projectionMatrix * modelViewMatrix * transformedPosition;
 }`;
+
+export const BackfaceMaterial = shaderMaterial(
+  {},
+  vert,
+  frag
+)

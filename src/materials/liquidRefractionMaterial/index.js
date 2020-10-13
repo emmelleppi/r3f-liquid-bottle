@@ -1,3 +1,6 @@
+import { shaderMaterial } from "drei";
+import * as THREE from "three"
+
 export const frag = `
 #ifdef GL_ES
 precision mediump float;
@@ -133,3 +136,22 @@ void main() {
     gl_Position = projectionMatrix * modelViewMatrix * transformedPosition;
 }
 `;
+
+export const LiquidRefractionMaterial = shaderMaterial(
+    {
+        envMap: null,
+        backfaceMap: null,
+        resolution: new THREE.Vector2(),
+        fillAmount: 0,
+        wobbleX: 0,
+        wobbleZ: 0,
+        topColor: new THREE.Vector4(1,1,1, 1),
+        rimColor: new THREE.Vector4(1,1,1, 1),
+        foamColor: new THREE.Vector4(1,1,1, 1),
+        tint: new THREE.Vector4(1,1,1, 1),
+        rim: 0.1,
+        rimPower: 1,
+    },
+    vert,
+    frag
+  )
