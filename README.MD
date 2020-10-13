@@ -5,16 +5,16 @@ Made with react-three-fiber and use-cannon
 ![](https://raw.githubusercontent.com/emmelleppi/r3f-liquid-bottle/master/screenshot.jpg)
 
 
-Based on these tutorials
+<h3>Based on these tutorials</h3>
 
-Refraction shader
+- Refraction shader:
 https://tympanus.net/codrops/2019/10/29/real-time-multiside-refraction-in-three-steps/
 
-Liquid shader
+- Liquid shader:
 https://www.patreon.com/posts/quick-game-art-18245226
 
 
-To run locally:
+<h3>To run locally:</h3>
 
 ```bash
 # using npm
