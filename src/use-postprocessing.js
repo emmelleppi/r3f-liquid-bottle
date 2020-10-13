@@ -11,7 +11,12 @@ import {
   KernelSize,
   GammaCorrectionEffect,
 } from "postprocessing";
-import { refCameraLayer1, refCameraLayer2, savePassEnv, savePassBackface } from "./store";
+import {
+  refCameraLayer1,
+  refCameraLayer2,
+  savePassEnv,
+  savePassBackface,
+} from "./store";
 
 function usePostprocessing() {
   const { gl, scene, size, camera } = useThree();
@@ -39,7 +44,7 @@ function usePostprocessing() {
     const effectPass = new EffectPass(camera, BLOOM);
     const renderEffectPass = new EffectPass(
       camera,
-      new GammaCorrectionEffect({ gamma: 1 })
+      new GammaCorrectionEffect({ gamma: 0.8 })
     );
     renderEffectPass.encodeOutput = false; // Prevent potential bugs.
     const backfaceEffectPass = new EffectPass(

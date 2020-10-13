@@ -1,10 +1,18 @@
 import * as THREE from "three";
-import React, { Suspense } from "react";
+import React, { Suspense, useRef } from "react";
 import { Canvas, useResource } from "react-three-fiber";
 import { Loader } from "drei/prototyping/Loader";
 import { Physics, usePlane } from "use-cannon";
 import Bottle from "./Bottle";
-import { Box, ContactShadows, PerspectiveCamera, Plane, useAspect, useTextureLoader } from "drei";
+import {
+  Box,
+  ContactShadows,
+  PerspectiveCamera,
+  Plane,
+  Stats,
+  useAspect,
+  useTextureLoader,
+} from "drei";
 import { Mouse } from "./mouse";
 import Environment from "./Environment";
 import { CAMERA_PROPS, refCameraLayer1, refCameraLayer2 } from "./store";
@@ -36,18 +44,24 @@ function Background() {
   texture.repeat = new THREE.Vector2(4, 4);
   return (
     <>
-      <Box position={CAMERA_PROPS.position} layers={1} >
-        <meshBasicMaterial side={THREE.BackSide} map={texture} />
+      <Box position={CAMERA_PROPS.position} layers={1}>
+        <meshBasicMaterial
+          side={THREE.BackSide}
+          map={texture}
+          transparent
+          opacity={0.8}
+        />
       </Box>
     </>
   );
 }
 
 function Scene() {
+  const contactShadowRef = useRef();
   const scale = useAspect("cover", 1024, 512, 2);
   useResource(refCameraLayer1);
   useResource(refCameraLayer2);
-  usePostprocessing()
+  usePostprocessing();
   return (
     <>
       <PerspectiveCamera ref={refCameraLayer1} layers={1} {...CAMERA_PROPS} />
@@ -71,6 +85,7 @@ function Scene() {
           <PhyPlanes />
         </Physics>
         <ContactShadows
+          ref={contactShadowRef}
           rotation={[Math.PI / 2, 0, 0]}
           opacity={0.2}
           width={100}
@@ -94,7 +109,7 @@ export default function App() {
       <Canvas
         concurrent
         camera={CAMERA_PROPS}
-        pixelRatio={1.8}
+        pixelRatio={1.75}
         gl={{
           powerPreference: "high-performance",
           antialias: false,
@@ -107,6 +122,7 @@ export default function App() {
         </Suspense>
       </Canvas>
       <Loader />
+      <Stats />
     </>
   );
 }

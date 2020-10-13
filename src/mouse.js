@@ -16,9 +16,9 @@ export function useDragConstraint(body) {
       api.enable();
     },
     [api]
-    );
-    useEffect(() => void api.disable(), [api]);
-    
+  );
+  useEffect(() => void api.disable(), [api]);
+
   return { onPointerUp, onPointerDown };
 }
 
